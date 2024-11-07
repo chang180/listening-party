@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('listening_parties', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('episode_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('episode_id')->constrained()->cascadeOnDelete()->nullable();
             $table->string('name');
             $table->boolean('is_active')->default(true);
             $table->dateTime('start_time');
-            $table->dateTime('end_time');
+            $table->dateTime('end_time')->nullable();
             $table->timestamps();
         });
     }
