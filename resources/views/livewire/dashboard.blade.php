@@ -6,12 +6,22 @@ use App\Models\ListeningParty;
 use App\Models\Episode;
 
 new class extends Component {
-    #[Validate('required|string|max:255')]
+    #[Validate]
     public string $name = '';
-    #[Validate('required')]
+    #[Validate]
     public $startTime;
-    #[Validate('url|required')]
+    #[Validate]
     public string $mediaUrl = '';
+
+    protected function rules()
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'startTime' => 'required',
+            'mediaUrl' => 'required|url',
+        ];
+    }
+
 
     public function createListeningParty()
     {
@@ -33,6 +43,8 @@ new class extends Component {
             'start_time' => $this->startTime,
         ]);
 
+        return redirect()->route('parties.show', $listeningParty);
+
     }
 
     public function with()
@@ -46,9 +58,9 @@ new class extends Component {
 <div class="flex items-center justify-center min-h-screen bg-slate-150">
     <div class="w-full max-w-lg px-4">
         <form wire:submit='createListeningParty' class="space-y-6">
-            <x-input wire:mode='name' placeholder='Listening Party Name' />
+            <x-input wire:model='name' placeholder='Listening Party Name' />
             <x-input wire:model='mediaUrl' placeholder='Podcast Episode URL' description="Direct Eposide Link or YouTube Link, RSS Feeds will grabp the latest episode."/>
-            <x-datetime-picker xire:model="startTime" placeholder="Lostening Party Start Time" />
+            <x-datetime-picker wire:model="startTime" placeholder="Lostening Party Start Time" />
             <x-button primary type="submit">Create Listening Party</x-button>
         </form>
     </div>
