@@ -22,7 +22,6 @@ new class extends Component {
         ];
     }
 
-
     public function createListeningParty()
     {
         $this->validate();
@@ -44,7 +43,6 @@ new class extends Component {
         ]);
 
         return redirect()->route('parties.show', $listeningParty);
-
     }
 
     public function with()
@@ -59,8 +57,9 @@ new class extends Component {
     <div class="w-full max-w-lg px-4">
         <form wire:submit='createListeningParty' class="space-y-6">
             <x-input wire:model='name' placeholder='Listening Party Name' />
-            <x-input wire:model='mediaUrl' placeholder='Podcast Episode URL' description="Direct Eposide Link or YouTube Link, RSS Feeds will grabp the latest episode."/>
-            <x-datetime-picker wire:model="startTime" placeholder="Lostening Party Start Time" />
+            <x-input wire:model='mediaUrl' placeholder='Podcast RSS Feed URL'
+                description="Entering the RSS Feeds will grabp the latest episode." />
+            <x-datetime-picker wire:model="startTime" placeholder="Lostening Party Start Time" :min="now()->subDays(1)" />
             <x-button primary type="submit">Create Listening Party</x-button>
         </form>
     </div>
