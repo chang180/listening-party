@@ -4,6 +4,7 @@ use Livewire\Volt\Component;
 use Livewire\Volt\Attributes\Validate;
 use App\Models\ListeningParty;
 use App\Models\Episode;
+use App\Jobs\ProcessPodcastUrl;
 
 new class extends Component {
     #[Validate]
@@ -41,6 +42,8 @@ new class extends Component {
             'episode_id' => $episode->id,
             'start_time' => $this->startTime,
         ]);
+
+        ProcessPodcastUrl::dispatch($this->mediaUrl, $listeningParty, $episode);
 
         return redirect()->route('parties.show', $listeningParty);
     }
