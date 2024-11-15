@@ -93,14 +93,54 @@ new class extends Component {
                                                 size="xl" rounded="sm" alt="Podcast Artwork" />
                                         </div>
                                         <div class="flex-1 space-x-4">
-                                            <p class="text-[0.9rem] font-semibold text-slate-900">{{ $listeningParty->name }}</p>
+                                            <p class="text-[0.9rem] font-semibold text-slate-900">
+                                                {{ $listeningParty->name }}</p>
                                             <div class="mt-1 text-xs">
-                                            <p class="text-sm truncate text-slate-600">{{ $listeningParty->episode->title }}</p>
-                                            <p class="text-[0.7rem] tracking-tighter uppercase text-slate-400">{{ $listeningParty->podcast->title }}</p>
+                                                <p class="text-sm truncate text-slate-600">
+                                                    {{ $listeningParty->episode->title }}</p>
+                                                <p class="text-[0.7rem] tracking-tighter uppercase text-slate-400">
+                                                    {{ $listeningParty->podcast->title }}</p>
                                             </div>
-                                            <p>{{ $listeningParty->start_time }}</p>
+                                            <div class="mt-1 text-xs text-slate-600" x-data="{
+                                                startTime: '{{ $listeningParty->start_time->toIso8601String() }}',
+                                                countdownText: '',
+                                                isLive: {{ $listeningParty->start_time->isPast() && $listeningParty->is_active ? 'true' : 'false' }},
+                                                updateCountdown() {
+                                                    const start = new Date(this.startTime).getTime();
+                                                    const now = new Date().getTime();
+                                                    const distance = start - now;
+                                                    if(distance < 0){
+                                                        this.countdownText = 'Started';
+                                                        this.isLive = true;
+                                                    } else {
+                                                        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                                        this.countdownText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                                                    }
+                                                }
+                                            }" x-init="updateCountdown();
+                                                setInterval(
+                                                    () => updateCountdown(),
+                                                    1000
+                                                );">
+                                                <div x-show="isLive">
+                                                    <x-badge flat rose label="Live">
+                                                        <x-slot name="prepend" class="relative flex items-center w-2 h-2">
+                                                            <span
+                                                                class="absolute inline-flex w-full h-full rounded-full opacity-75 bg-rose-500 animate-ping"></span>
+                                                            <span class="relative inline-flex w-2 h-2 rounded-full bg-rose-500"></span>
+                                                        </x-slot>
+                                                    </x-badge>
+                                                </div>
+                                                <div x-show="!isLive">
+                                                    Starts in: <span x-text="countdownText"></span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+                                    <x-button flat xs class="w-20">Join</x-button>
                                 </div>
                             </a>
                         </div>
