@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Podcast;
 use Carbon\CarbonInterval;
+use Illuminate\Container\Attributes\Log;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -18,9 +19,7 @@ class ProcessPodcastUrl implements ShouldQueue
         public $rssUrl,
         public $listeningParty,
         public $episode
-    )
-    {
-    }
+    ) {}
 
     /**
      * Execute the job.
@@ -41,15 +40,49 @@ class ProcessPodcastUrl implements ShouldQueue
         $latestEpisode = $xml->channel->item[0];
 
         $episodeTitle = $latestEpisode->title;
-        $episodeMediaUrl = (string)$latestEpisode->enclosure['url'];
+        $episodeMediaUrl = (string) $latestEpisode->enclosure['url'];
 
         // register the itunes namespace to grab the duration
         $namespace = $xml->getNamespaces(true);
-        $itunesNamespace = $namespace['itunes'];
+        $itunesNamespace = $namespace['itunes'] ?? null;
 
-        $episodeLength = $latestEpisode->children($itunesNamespace)->duration;
+        $episodeLength = null;
 
-        $interval = CarbonInterval::createFromFormat('H:i:s', $episodeLength);
+        // Try to get duration from Tunes namespace
+        if ($itunesNamespace) {
+            $episodeLength = $latestEpisode->children($itunesNamespace)->duration;
+        }
+
+        // If iTunes namespace is not available or duration is empty try to calculate duration from enclosure length
+        if (empty($episodeLength)) {
+            $fileSize = (int) $latestEpisode->enclosure['length'];
+            $vitrate = 12800; // Assume 128 kbps bitrate
+            $durationInSeconds = ceil($fileSize * 8 / $vitrate);
+            $episodeLength = (string) $durationInSeconds;
+        }
+
+        // Parse the duration
+        try {
+            if (strpos($episodeLength, ':') === false) {
+                // Duration is in HH:MM:SS or MM:SS format
+                $parts = explode(':', $episodeLength);
+                if (count($parts) === 2) {
+                    $interval = CarbonInterval::createFromFormat('i:s', $episodeLength);
+                } elseif (count($parts) === 3) {
+                    $interval = CarbonInterval::createFromFormat('H:i:s', $episodeLength);
+                } else {
+                    throw new \Exception('Unexpected duration format');
+                }
+            } else {
+                // Duration is in seconds
+                $interval = CarbonInterval::seconds((int) $episodeLength);
+            }
+        } catch (\Exception $e) {
+            // Log the error
+            Log::error('Error parsing episode duration: ' . $e->getMessage());
+            // Set the duration to 0
+            $interval = CarbonInterval::hour(); // Default to 1 hour if parsing fails
+        }
 
         $endTime = $this->listeningParty->start_time->add($interval);
 
@@ -71,6 +104,5 @@ class ProcessPodcastUrl implements ShouldQueue
         $this->listeningParty->update([
             'end_time' => $endTime,
         ]);
-
     }
 }
