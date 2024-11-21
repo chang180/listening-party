@@ -22,7 +22,7 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
                 serif: ['Aleo', 'serif'],
-                cursive: ['Annie User Your Telescope', 'cursive'],
+                cursive: ['Annie Use Your Telescope', 'cursive'],
             },
             colors: {
                 primary: colors.emerald,

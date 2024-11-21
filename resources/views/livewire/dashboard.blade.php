@@ -27,12 +27,6 @@ new class extends Component {
     {
         $this->validate();
 
-        // first check that there are not existing episodes with the same URL
-        // ust the if there is, oterwise create a new one
-        // when a new episode is created , grab information with a background job
-        // then use that information to create a new listening party
-        // finally redirect to the listening party page
-
         $episode = Episode::Create([
             'media_url' => $this->mediaUrl,
         ]);
@@ -51,7 +45,7 @@ new class extends Component {
     public function with()
     {
         return [
-            'listeningParties' => ListeningParty::where('is_active', true)->orderBy('start_time', 'asc')->with('episode.podcast')->get(),
+            'listeningParties' => ListeningParty::where('is_active', true)->whereNotNull('end_time')->orderBy('start_time', 'asc')->with('episode.podcast')->get(),
         ];
     }
 }; ?>
@@ -66,8 +60,8 @@ new class extends Component {
                     <x-input wire:model='name' placeholder='Listening Party Name' />
                     <x-input wire:model='mediaUrl' placeholder='Podcast RSS Feed URL'
                         description="Entering the RSS Feeds will grabp the latest episode." />
-                    <x-datetime-picker wire:model="startTime" placeholder="Lostening Party Start Time"
-                        :min="now()->subDays(1)" />
+                    <x-datetime-picker wire:model="startTime" placeholder="Listening Party Start Time" :min="now()->subDays(1)"
+                        requires-confirmation />
                     <x-button primary type="submit" class="w-full">Create Listening Party</x-button>
                 </form>
             </x-card>
@@ -80,7 +74,8 @@ new class extends Component {
             <h3 class="mb-4 font-serif text-[0.9rem] font-bold">Upcoming Listening Parties</h3>
             <div class="bg-white rounded-lg shadow-lg">
                 @if ($listeningParties->isEmpty())
-                    <div>No awwdio listening parties started yet ... 😞</div>
+                    <div class="flex items-center justify-center p-6 font-serif text-sm">No awwdio listening parties
+                        started yet ... 😞</div>
                 @else
                     @foreach ($listeningParties as $listeningParty)
                         <div wire:key='"{{ $listeningParty->id }}'>
@@ -109,7 +104,7 @@ new class extends Component {
                                                     const start = new Date(this.startTime).getTime();
                                                     const now = new Date().getTime();
                                                     const distance = start - now;
-                                                    if(distance < 0){
+                                                    if (distance < 0) {
                                                         this.countdownText = 'Started';
                                                         this.isLive = true;
                                                     } else {
@@ -120,17 +115,20 @@ new class extends Component {
                                                         this.countdownText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
                                                     }
                                                 }
-                                            }" x-init="updateCountdown();
+                                            }"
+                                                x-init="updateCountdown();
                                                 setInterval(
                                                     () => updateCountdown(),
                                                     1000
                                                 );">
                                                 <div x-show="isLive">
                                                     <x-badge flat rose label="Live">
-                                                        <x-slot name="prepend" class="relative flex items-center w-2 h-2">
+                                                        <x-slot name="prepend"
+                                                            class="relative flex items-center w-2 h-2">
                                                             <span
                                                                 class="absolute inline-flex w-full h-full rounded-full opacity-75 bg-rose-500 animate-ping"></span>
-                                                            <span class="relative inline-flex w-2 h-2 rounded-full bg-rose-500"></span>
+                                                            <span
+                                                                class="relative inline-flex w-2 h-2 rounded-full bg-rose-500"></span>
                                                         </x-slot>
                                                     </x-badge>
                                                 </div>
