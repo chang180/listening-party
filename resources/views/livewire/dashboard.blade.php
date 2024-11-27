@@ -78,10 +78,10 @@ new class extends Component {
                         started yet ... 😞</div>
                 @else
                     @foreach ($listeningParties as $listeningParty)
-                        <div wire:key='"{{ $listeningParty->id }}'>
+                        <div wire:key="{{ $listeningParty->id }}">
                             <a href="{{ route('parties.show', $listeningParty) }}" class="block">
                                 <div
-                                    class="flex items-center justify-between p-4 transition-all duration-150 ease-in-out border-b border-gray-200 hover:bg_gray-50">
+                                    class="flex items-center justify-between p-4 transition-all duration-150 ease-in-out border-b border-gray-200 hover:bg-gray-50">
                                     <div class="flex items-center space-x-4">
                                         <div class="flex-shrink-0">
                                             <x-avatar src="{{ $listeningParty->episode->podcast->artwork_url }}"
@@ -141,6 +141,9 @@ new class extends Component {
                                     <x-button flat xs class="w-20">Join</x-button>
                                 </div>
                             </a>
+                            @if ($listeningParties->isEmpty())
+                                <div>No listening parties available</div>
+                            @endif
                         </div>
                     @endforeach
                 @endif
